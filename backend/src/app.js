@@ -1,95 +1,81 @@
-﻿require('dotenv').config();
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path');
+require('dotenv').config();
 
-const { testConnection } = require('./config/database');
-const { syncDatabase } = require('./models');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
+// Veritabanı bağlantısı
+const db = require('./models');
 
-// --- IMPORT ROUTES ---
+// Rotalar
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-// YENİ EKLENENLER (PART 2):
 const courseRoutes = require('./routes/courseRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 
-// Initialize app
-const app = express();
-const PORT = process.env.PORT || 5000;
-const API_VERSION = process.env.API_VERSION || 'v1';
+// --- DÜZELTME BURADA YAPILDI ---
+// Senin gönderdiğin dosya bir obje döndürüyor { errorHandler, notFound }
+// O yüzden süslü parantez ile (destructuring) alıyoruz.
+const { errorHandler, notFound } = require('./middleware/errorHandler');
 
-// Middleware
+const app = express();
+
+// --- Middleware Ayarları ---
 app.use(helmet());
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    credentials: true
-}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// CORS Ayarı
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// Health check
+// --- Rotalar ---
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+
+// Sağlık Kontrolü
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: 'Smart Campus API is running',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV
-    });
+    res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
 
-// --- API ROUTES ---
-app.use(`/api/${API_VERSION}/auth`, authRoutes);
-app.use(`/api/${API_VERSION}/users`, userRoutes);
-// YENİ EKLENENLER (PART 2):
-app.use(`/api/${API_VERSION}/courses`, courseRoutes);
-app.use(`/api/${API_VERSION}/attendance`, attendanceRoutes);
+// Ana Sayfa
+app.get('/', (req, res) => {
+    res.send('Smart Campus API is Running! 🚀');
+});
 
-// 404 handler
+// --- HATA YÖNETİMİ (SIRASI ÖNEMLİ) ---
+
+// 1. Önce: Hiçbir rota bulunamazsa 404 handler çalışsın
 app.use(notFound);
 
-// Error handler
+// 2. Sonra: Diğer tüm hatalar için senin yazdığın kapsamlı error handler çalışsın
 app.use(errorHandler);
 
-// Start server
+// --- Sunucuyu Başlatma ---
+const PORT = process.env.PORT || 5000;
+
 const startServer = async () => {
     try {
-        await testConnection();
-        // await syncDatabase(); // Şimdilik sync'i kapattım, tabloları SQL ile elle oluşturduk.
+        await db.sequelize.authenticate();
+        console.log('✅ Veritabanı bağlantısı başarılı!');
+
+        await db.sequelize.sync({ force: false });
+        console.log('✅ Tablolar senkronize edildi.');
 
         app.listen(PORT, () => {
-            console.log(`
-╔════════════════════════════════════════════════╗
-║                                                ║
-║      🎓 SMART CAMPUS API SERVER                ║
-║                                                ║
-║      Environment: ${(process.env.NODE_ENV || 'DEVELOPMENT').toUpperCase().padEnd(10)}        ║
-║      Port:        ${PORT}                          ║
-║      API Version: ${API_VERSION}                          ║
-║      Base URL:    http://localhost:${PORT}/api/${API_VERSION}  ║
-║                                                ║
-║      ✅ Server is running successfully!        ║
-║                                                ║
-╚════════════════════════════════════════════════╝
-      `);
+            console.log(`🚀 Sunucu ${PORT} portunda çalışıyor...`);
+            console.log(`📡 URL: http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
+        console.error('❌ Sunucu başlatılamadı:', error.message);
         process.exit(1);
     }
 };
 
-process.on('unhandledRejection', (err) => {
-    console.error('❌ Unhandled Promise Rejection:', err);
-    process.exit(1);
-});
-
 startServer();
-
-module.exports = app;

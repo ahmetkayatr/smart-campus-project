@@ -10,28 +10,38 @@ const db = {};
 
 let sequelize;
 
-// KESİN ÇÖZÜM: Render'da DB_URL varsa onu kullan, yoksa config'e bak
+// --- DİKKAT: BURASI GÜNCELLENDİ (HİBRİT AYAR) ---
+
+// 1. DURUM: Render'daysak (DB_URL varsa)
 if (process.env.DB_URL) {
+    console.log("🌍 Render ortamı algılandı. Uzak veritabanına bağlanılıyor...");
     sequelize = new Sequelize(process.env.DB_URL, {
         dialect: 'postgres',
         protocol: 'postgres',
+        logging: false,
         dialectOptions: {
             ssl: {
                 require: true,
-                rejectUnauthorized: false // Render için kritik ayar
+                rejectUnauthorized: false
             }
-        },
-        logging: false
+        }
     });
-} else {
-    // Localde çalışırken burası çalışır
-    const config = require(__dirname + '/../config/config.json')[env];
+}
+// 2. DURUM: Bilgisayarındaysak (Local)
+else {
+    console.log("💻 Local ortam algılandı. Bilgisayarındaki config kullanılıyor...");
+    // Config dosyasını dinamik bul
+    const configPath = path.resolve(__dirname, '..', 'config', 'config.json');
+    const config = require(configPath)[env];
+
     if (config.use_env_variable) {
         sequelize = new Sequelize(process.env[config.use_env_variable], config);
     } else {
         sequelize = new Sequelize(config.database, config.username, config.password, config);
     }
 }
+
+// --------------------------------------------------
 
 fs
     .readdirSync(__dirname)

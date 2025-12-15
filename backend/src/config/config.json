@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "postgres",
-    "password": "postgres",
+    "password": "ahmet",
     "database": "smart_campus_db",
     "host": "localhost",
     "port": 5432,
