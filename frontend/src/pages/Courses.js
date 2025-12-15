@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// Axios yerine kendi oluşturduğumuz merkezi API servisini çağırıyoruz
+import api from '../services/api';
 
 const Courses = () => {
     const [courses, setCourses] = useState([]);
@@ -10,8 +11,9 @@ const Courses = () => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                // Token varsa header'a eklemek gerekir, şimdilik düz çekiyoruz
-                const response = await axios.get('http://localhost:5000/api/v1/courses');
+                // ARTIK UZUN LİNK YOK: api.js zaten başını (Render URL) ekliyor
+                const response = await api.get('/courses');
+
                 if (response.data.success) {
                     setCourses(response.data.data);
                 }
@@ -41,21 +43,23 @@ const Courses = () => {
                 setStatusMessage("Konum alındı, sunucuya gönderiliyor...");
 
                 try {
-                    // Backend'e POST isteği at
-                    const response = await axios.post('http://localhost:5000/api/v1/attendance/checkin', {
-                        sessionId: courseId, // Şimdilik ders ID'sini session ID gibi kullanıyoruz
+                    // DÜZELTME: localhost yerine api servisi kullanıldı
+                    const response = await api.post('/attendance/checkin', {
+                        sessionId: courseId,
                         studentLatitude: latitude,
                         studentLongitude: longitude
                     });
 
                     if (response.data.success) {
                         alert("✅ Yoklama Başarılı! \n" + response.data.message);
-                        setStatusMessage("İşlem Başarili.");
+                        setStatusMessage("İşlem Başarılı.");
                     }
                 } catch (error) {
                     console.error(error);
-                    alert("❌ Yoklama Başarısız: Sunucu hatasi.");
-                    setStatusMessage("Hata oluştu.");
+                    // Hata mesajını backend'den gelen detayla gösterelim
+                    const errorMsg = error.response?.data?.message || "Sunucu hatası.";
+                    alert("❌ Yoklama Başarısız: " + errorMsg);
+                    setStatusMessage("Hata: " + errorMsg);
                 }
             },
             (error) => {
@@ -71,7 +75,7 @@ const Courses = () => {
             <h1 className="text-2xl font-bold mb-6">Akademik Derslerim</h1>
 
             {statusMessage && (
-                <div className="bg-blue-100 text-blue-700 p-3 rounded mb-4">
+                <div className={`p-3 rounded mb-4 ${statusMessage.includes("Hata") ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
                     {statusMessage}
                 </div>
             )}
