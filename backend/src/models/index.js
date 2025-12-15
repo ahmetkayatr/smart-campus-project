@@ -12,10 +12,12 @@ let sequelize;
 
 // --- DİKKAT: BURASI GÜNCELLENDİ (HİBRİT AYAR) ---
 
-// 1. DURUM: Render'daysak (DB_URL varsa)
-if (process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL || process.env.DB_URL;
+
+// 1. DURUM: Render'daysak (DATABASE_URL veya DB_URL varsa)
+if (databaseUrl) {
     console.log("🌍 Render ortamı algılandı. Uzak veritabanına bağlanılıyor...");
-    sequelize = new Sequelize(process.env.DB_URL, {
+    sequelize = new Sequelize(databaseUrl, {
         dialect: 'postgres',
         protocol: 'postgres',
         logging: false,
