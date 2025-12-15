@@ -13,7 +13,7 @@ let sequelize;
 // --- DİKKAT: BURASI GÜNCELLENDİ (HİBRİT AYAR) ---
 
 // 1. DURUM: Render'daysak (DB_URL varsa)
-if (process.env.DB_URL) {
+if (process.env.DATABASE_URL) {
     console.log("🌍 Render ortamı algılandı. Uzak veritabanına bağlanılıyor...");
     sequelize = new Sequelize(process.env.DB_URL, {
         dialect: 'postgres',
