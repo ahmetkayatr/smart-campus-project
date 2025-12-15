@@ -13,9 +13,7 @@ const userRoutes = require('./routes/userRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 
-// --- DÜZELTME BURADA YAPILDI ---
-// Senin gönderdiğin dosya bir obje döndürüyor { errorHandler, notFound }
-// O yüzden süslü parantez ile (destructuring) alıyoruz.
+
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
@@ -49,12 +47,11 @@ app.get('/', (req, res) => {
     res.send('Smart Campus API is Running! 🚀');
 });
 
-// --- HATA YÖNETİMİ (SIRASI ÖNEMLİ) ---
 
-// 1. Önce: Hiçbir rota bulunamazsa 404 handler çalışsın
+
+
 app.use(notFound);
 
-// 2. Sonra: Diğer tüm hatalar için senin yazdığın kapsamlı error handler çalışsın
 app.use(errorHandler);
 
 // --- Sunucuyu Başlatma ---
@@ -70,7 +67,6 @@ const startServer = async () => {
 
         app.listen(PORT, () => {
             console.log(`🚀 Sunucu ${PORT} portunda çalışıyor...`);
-            console.log(`📡 URL: http://localhost:${PORT}`);
         });
     } catch (error) {
         console.error('❌ Sunucu başlatılamadı:', error.message);
