@@ -3,9 +3,8 @@
     "",
     "\\frontend",
     "\\frontend\\src",
-    "\\frontend\\src\\pages",
     "\\frontend\\src\\services"
   ],
-  "SelectedNode": "\\frontend\\src\\pages\\Courses.js",
+  "SelectedNode": "\\frontend\\src\\services\\api.js",
   "PreviewInSolutionExplorer": false
 }
