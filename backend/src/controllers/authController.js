@@ -22,6 +22,7 @@ class AuthController {
                 data: result.user
             });
         } catch (error) {
+            console.error("REGISTER ERROR:", error); // Hata loglama eklendi
             res.status(400).json({
                 success: false,
                 error: {
@@ -44,6 +45,7 @@ class AuthController {
                 message: result.message
             });
         } catch (error) {
+            console.error("VERIFY EMAIL ERROR:", error);
             res.status(400).json({
                 success: false,
                 error: {
@@ -66,6 +68,8 @@ class AuthController {
             }
 
             const { email, password } = req.body;
+
+            // Service katmanýný çaðýr
             const result = await authService.login(email, password);
 
             res.status(200).json({
@@ -77,6 +81,12 @@ class AuthController {
                 }
             });
         } catch (error) {
+            // --- KRÝTÝK LOGLAMA ---
+            // Eðer "Student is not associated" hatasý backend'den geliyorsa burada göreceðiz.
+            console.error("LOGIN CONTROLLER ERROR:", error);
+            console.error("Hata Mesajý:", error.message);
+            // ---------------------
+
             res.status(401).json({
                 success: false,
                 error: {
@@ -111,6 +121,7 @@ class AuthController {
                 }
             });
         } catch (error) {
+            console.error("REFRESH TOKEN ERROR:", error);
             res.status(401).json({
                 success: false,
                 error: {
@@ -128,6 +139,7 @@ class AuthController {
             // For now, we'll just return success
             res.status(204).send();
         } catch (error) {
+            console.error("LOGOUT ERROR:", error);
             res.status(500).json({
                 success: false,
                 error: {
@@ -157,6 +169,7 @@ class AuthController {
                 message: result.message
             });
         } catch (error) {
+            console.error("FORGOT PASSWORD ERROR:", error);
             res.status(500).json({
                 success: false,
                 error: {
@@ -188,6 +201,7 @@ class AuthController {
                 message: result.message
             });
         } catch (error) {
+            console.error("RESET PASSWORD ERROR:", error);
             res.status(400).json({
                 success: false,
                 error: {

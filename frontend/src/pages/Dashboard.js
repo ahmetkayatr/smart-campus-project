@@ -15,9 +15,9 @@ const Dashboard = () => {
                     <div>
                         <h1 className="text-3xl font-bold mb-2">Hoş Geldin, {user?.full_name || 'Kullanıcı'}! 👋</h1>
                         <p className="opacity-90 text-indigo-100">
-                            {isInstructor 
-                                ? "Akademik yönetim paneline hoş geldiniz." 
-                                : "Derslerini ve yoklamalarını buradan takip edebilirsin."}
+                            {isInstructor
+                                ? "Akademik yönetim paneline hoş geldiniz."
+                                : "Kampüs hizmetlerini ve derslerini buradan takip edebilirsin."}
                         </p>
                     </div>
                     <div className="mt-4 md:mt-0 flex gap-2">
@@ -30,14 +30,13 @@ const Dashboard = () => {
 
             {/* 2. KARTLAR GRID YAPISI */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                
+
                 {/* KART 1: AKADEMİK (Dersler) */}
                 <Link to="/courses" className="group bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-transparent hover:border-indigo-500">
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center text-center">
                         <div className="bg-indigo-100 p-4 rounded-full mb-4 group-hover:bg-indigo-600 transition-colors duration-300">
                             <span className="text-3xl group-hover:text-white transition-colors">📚</span>
                         </div>
-                        {/* Hoca ise 'Verilen Ders', Öğrenci ise 'Derslerim' */}
                         <h3 className="font-bold text-gray-800 text-lg">
                             {isInstructor ? "Verilen Dersler" : "Derslerim"}
                         </h3>
@@ -48,47 +47,41 @@ const Dashboard = () => {
                     </div>
                 </Link>
 
-                {/* KART 2: YOKLAMA (ARTIK AKTİF!) */}
-                <Link to="/courses" className="group bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-transparent hover:border-green-500">
-                    <div className="flex flex-col items-center">
-                        <div className="bg-green-100 p-4 rounded-full mb-4 group-hover:bg-green-600 transition-colors duration-300">
-                            <span className="text-3xl group-hover:text-white transition-colors">✅</span>
+                {/* KART 2: CÜZDAN */}
+                <Link to="/wallet" className="group bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-transparent hover:border-blue-500">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="bg-blue-100 p-4 rounded-full mb-4 group-hover:bg-blue-600 transition-colors duration-300">
+                            <span className="text-3xl group-hover:text-white transition-colors">💳</span>
                         </div>
-                        <h3 className="font-bold text-gray-800 text-lg">
-                            {isInstructor ? "Yoklama Yönetimi" : "Yoklama"}
-                        </h3>
-                        <p className="text-4xl font-bold text-green-600 my-2">
-                            {isInstructor ? "Aktif" : "%100"}
-                        </p>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">
-                            {isInstructor ? "Oturum Aç/Kapat" : "Devam Oranı"}
-                        </p>
+                        <h3 className="font-bold text-gray-800 text-lg">Cüzdanım</h3>
+                        <p className="text-4xl font-bold text-blue-600 my-2">Bakiye</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">Para Yükle / Harca</p>
                     </div>
                 </Link>
 
-                {/* KART 3: YEMEK (Part 3 - Pasif) */}
-                <div className="bg-white p-6 rounded-xl shadow-md opacity-60 cursor-not-allowed relative grayscale hover:grayscale-0 transition-all">
-                    <div className="flex flex-col items-center">
-                        <div className="bg-yellow-100 p-4 rounded-full mb-4">
-                            <span className="text-3xl">🍽️</span>
+                {/* KART 3: YEMEKHANE */}
+                <Link to="/meals" className="group bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-transparent hover:border-yellow-500">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="bg-yellow-100 p-4 rounded-full mb-4 group-hover:bg-yellow-600 transition-colors duration-300">
+                            <span className="text-3xl group-hover:text-white transition-colors">🍽️</span>
                         </div>
-                        <h3 className="font-bold text-gray-800 text-lg">Yemek</h3>
-                        <p className="text-xs text-gray-400 mt-2">Part 3 ile gelecek</p>
+                        <h3 className="font-bold text-gray-800 text-lg">Yemekhane</h3>
+                        <p className="text-4xl font-bold text-yellow-600 my-2">Menü</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">Rezervasyon Yap</p>
                     </div>
-                    <span className="absolute top-3 right-3 bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full">YAKINDA</span>
-                </div>
+                </Link>
 
-                {/* KART 4: ETKİNLİK (Part 3 - Pasif) */}
-                <div className="bg-white p-6 rounded-xl shadow-md opacity-60 cursor-not-allowed relative grayscale hover:grayscale-0 transition-all">
-                    <div className="flex flex-col items-center">
-                        <div className="bg-purple-100 p-4 rounded-full mb-4">
-                            <span className="text-3xl">📅</span>
+                {/* KART 4: DERS PROGRAMI (ESKİ ETKİNLİK KARTI) */}
+                <Link to="/schedule" className="group bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-transparent hover:border-purple-500">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="bg-purple-100 p-4 rounded-full mb-4 group-hover:bg-purple-600 transition-colors duration-300">
+                            <span className="text-3xl group-hover:text-white transition-colors">📅</span>
                         </div>
-                        <h3 className="font-bold text-gray-800 text-lg">Etkinlik</h3>
-                        <p className="text-xs text-gray-400 mt-2">Part 3 ile gelecek</p>
+                        <h3 className="font-bold text-gray-800 text-lg">Ders Programı</h3>
+                        <p className="text-4xl font-bold text-purple-600 my-2">Aktif</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">Haftalık Çizelge</p>
                     </div>
-                    <span className="absolute top-3 right-3 bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full">YAKINDA</span>
-                </div>
+                </Link>
             </div>
 
             {/* KULLANICI BİLGİLERİ */}

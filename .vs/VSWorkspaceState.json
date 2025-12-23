@@ -2,9 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\frontend",
+    "\\frontend\\public",
     "\\frontend\\src",
-    "\\frontend\\src\\services"
+    "\\frontend\\src\\components",
+    "\\frontend\\src\\context",
+    "\\frontend\\src\\pages",
+    "\\frontend\\src\\services",
+    "\\frontend\\src\\utils"
   ],
-  "SelectedNode": "\\frontend\\src\\services\\api.js",
+  "SelectedNode": "\\frontend\\src\\context\\AuthContext.js",
   "PreviewInSolutionExplorer": false
 }

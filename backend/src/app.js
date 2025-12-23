@@ -4,15 +4,21 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
-// Veritabanı bağlantısı
+// Veritabanı bağlantısı ve modeller
 const db = require('./models');
 
-// Rotalar
+// Rotaların İçe Aktarılması
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const walletRoutes = require('./routes/walletRoutes');
+const mealRoutes = require('./routes/mealRoutes');
+const schedulingRoutes = require('./routes/schedulingRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 
+// DİKKAT: Hata bu satırdaydı, eğer dosyan yoksa geçici olarak yorum satırına alıyorum
+// const enrollmentRoutes = require('./routes/enrollmentRoutes'); 
 
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
@@ -26,35 +32,55 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS Ayarı
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 
-// --- Rotalar ---
+// --- Ana Sayfa ve API Bilgisi ---
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Smart Campus API is Running! 🚀',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/v1/auth',
+            users: '/api/v1/users',
+            courses: '/api/v1/courses',
+            attendance: '/api/v1/attendance',
+            meals: '/api/v1/meals',
+            wallet: '/api/v1/wallet',
+            events: '/api/v1/events',
+            scheduling: '/api/v1/scheduling'
+        }
+    });
+});
+
+// Sağlık Kontrolü
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        database: db.sequelize ? 'connected' : 'disconnected'
+    });
+});
+
+// --- API Rotaları (Part 1-3 Entegrasyonu) ---
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 
-// Sağlık Kontrolü
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', timestamp: new Date() });
-});
+// Part 3 Rotaları
+app.use('/api/v1/meals', mealRoutes);
+app.use('/api/v1/wallet', walletRoutes);
+app.use('/api/v1/events', eventRoutes);
+app.use('/api/v1/scheduling', schedulingRoutes);
 
-// Ana Sayfa
-app.get('/', (req, res) => {
-    res.send('Smart Campus API is Running! 🚀');
-});
-
-
-
-
+// --- Hata Yönetimi ---
 app.use(notFound);
-
 app.use(errorHandler);
 
-// --- Sunucuyu Başlatma ---
+// --- Sunucu Başlatma ---
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
@@ -62,11 +88,14 @@ const startServer = async () => {
         await db.sequelize.authenticate();
         console.log('✅ Veritabanı bağlantısı başarılı!');
 
-        await db.sequelize.sync({ force: false });
-        console.log('✅ Tablolar senkronize edildi.');
+        // Part 3 için 'alter: true' kullanarak tabloları otomatik ekliyoruz
+        if (process.env.NODE_ENV !== 'production') {
+            await db.sequelize.sync({ alter: true });
+            console.log('✅ Part 3 Tabloları başarıyla senkronize edildi.');
+        }
 
         app.listen(PORT, () => {
-            console.log(`🚀 Sunucu ${PORT} portunda çalışıyor...`);
+            console.log(`🚀 Sunucu http://localhost:${PORT} üzerinde çalışıyor...`);
         });
     } catch (error) {
         console.error('❌ Sunucu başlatılamadı:', error.message);
@@ -75,3 +104,5 @@ const startServer = async () => {
 };
 
 startServer();
+
+module.exports = app;

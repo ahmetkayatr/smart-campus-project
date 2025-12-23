@@ -1,72 +1,95 @@
-﻿'use strict';
+﻿const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const db = {};
+// Model Fonksiyonlarını İçe Aktar (Functional Factory Pattern)
+const UserModel = require('./User');
+const DepartmentModel = require('./Department');
+const StudentModel = require('./Student');
+const FacultyModel = require('./Faculty');
+const WalletModel = require('./Wallet');             // Part 3
+const EventModel = require('./Event');               // Part 3
+const MealMenuModel = require('./MealMenu');         // Part 3 - Hata buradaydı, Model olarak güncellendi
+const MealReservationModel = require('./MealReservation'); // Part 3
+const ScheduleModel = require('./Schedule');         // Part 3
 
-let sequelize;
+// Modelleri Initialize Et (sequelize nesnesini enjekte ediyoruz)
+const User = UserModel(sequelize);
+const Department = DepartmentModel(sequelize);
+const Student = StudentModel(sequelize);
+const Faculty = FacultyModel(sequelize);
+const Wallet = WalletModel(sequelize);
+const Event = EventModel(sequelize);
+const MealMenu = MealMenuModel(sequelize);
+const MealReservation = MealReservationModel(sequelize);
+const Schedule = ScheduleModel(sequelize);
 
-// --- DİKKAT: BURASI GÜNCELLENDİ (HİBRİT AYAR) ---
+// ==========================================
+// ASSOCIATIONS (İLİŞKİLER)
+// ==========================================
 
-const databaseUrl = process.env.DATABASE_URL || process.env.DB_URL;
+// --- Part 1 & 2 İlişkiler ---
+User.hasOne(Student, { foreignKey: 'user_id', as: 'student', onDelete: 'CASCADE' });
+Student.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-// 1. DURUM: Render'daysak (DATABASE_URL veya DB_URL varsa)
-if (databaseUrl) {
-    console.log("🌍 Render ortamı algılandı. Uzak veritabanına bağlanılıyor...");
-    sequelize = new Sequelize(databaseUrl, {
-        dialect: 'postgres',
-        protocol: 'postgres',
-        logging: false,
-        dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false
-            }
-        }
-    });
-}
-// 2. DURUM: Bilgisayarındaysak (Local)
-else {
-    console.log("💻 Local ortam algılandı. Bilgisayarındaki config kullanılıyor...");
-    // Config dosyasını dinamik bul
-    const configPath = path.resolve(__dirname, '..', 'config', 'config.json');
-    const config = require(configPath)[env];
+User.hasOne(Faculty, { foreignKey: 'user_id', as: 'faculty', onDelete: 'CASCADE' });
+Faculty.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-    if (config.use_env_variable) {
-        sequelize = new Sequelize(process.env[config.use_env_variable], config);
-    } else {
-        sequelize = new Sequelize(config.database, config.username, config.password, config);
+Department.hasMany(Student, { foreignKey: 'department_id', as: 'students' });
+Student.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
+
+Department.hasMany(Faculty, { foreignKey: 'department_id', as: 'faculty_members' });
+Faculty.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
+
+User.hasMany(Student, { foreignKey: 'advisor_id', as: 'advisees' });
+Student.belongsTo(User, { foreignKey: 'advisor_id', as: 'advisor' });
+
+// --- Part 3 Yeni İlişkiler ---
+
+// Wallet & User (One-to-One)
+User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet', onDelete: 'CASCADE' });
+Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// MealReservation & Menu İlişkileri
+User.hasMany(MealReservation, { foreignKey: 'user_id', as: 'meal_reservations' });
+MealReservation.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+MealMenu.hasMany(MealReservation, { foreignKey: 'menu_id', as: 'reservations' });
+MealReservation.belongsTo(MealMenu, { foreignKey: 'menu_id', as: 'menu' });
+
+// Event & User (Many-to-Many Kayıt Sistemi)
+User.belongsToMany(Event, { through: 'event_registrations', as: 'registered_events', foreignKey: 'user_id' });
+Event.belongsToMany(User, { through: 'event_registrations', as: 'attendees', foreignKey: 'event_id' });
+
+// Schedule (Ders Programı) İlişkileri
+User.hasMany(Schedule, { foreignKey: 'instructor_id', as: 'teaching_schedule' });
+Schedule.belongsTo(User, { foreignKey: 'instructor_id', as: 'instructor' });
+
+// ==========================================
+// DATABASE SYNC & EXPORT
+// ==========================================
+
+const syncDatabase = async () => {
+    try {
+        // alter: true, tabloları silmeden yeni sütunları/tabloları ekler
+        await sequelize.sync({ alter: true });
+        console.log('✅ Veritabanı başarıyla senkronize edildi ve Part 3 tabloları eklendi.');
+    } catch (error) {
+        console.error('❌ Database sync error:', error);
+        throw error;
     }
-}
+};
 
-// --------------------------------------------------
-
-fs
-    .readdirSync(__dirname)
-    .filter(file => {
-        return (
-            file.indexOf('.') !== 0 &&
-            file !== basename &&
-            file.slice(-3) === '.js' &&
-            file.indexOf('.test.js') === -1
-        );
-    })
-    .forEach(file => {
-        const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-        db[model.name] = model;
-    });
-
-Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
-    }
-});
-
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-module.exports = db;
+module.exports = {
+    sequelize,
+    Op,
+    User,
+    Department,
+    Student,
+    Faculty,
+    Wallet,
+    Event,
+    MealMenu,
+    MealReservation,
+    Schedule,
+    syncDatabase
+};

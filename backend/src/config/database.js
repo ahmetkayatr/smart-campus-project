@@ -1,31 +1,37 @@
-﻿const { Sequelize } = require('sequelize');
-const path = require('path');
-require('dotenv').config();
+﻿require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
-const dbUrl = process.env.DB_URL;
-
-let sequelize;
-
-if (dbUrl) {
-    console.log("🌍 Database: Render (Uzak Sunucu) modunda bağlanılıyor...");
-    sequelize = new Sequelize(dbUrl, {
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
         dialect: 'postgres',
-        protocol: 'postgres',
-        dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false 
-            }
+        logging: process.env.NODE_ENV === 'development' ? console.log : false,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
         },
-        logging: false
-    });
-} else {
-    console.log("💻 Database: Local modunda (config.json) çalışılıyor...");
+        define: {
+            timestamps: true,
+            underscored: true,
+            freezeTableName: true
+        }
+    }
+);
 
-    const env = process.env.NODE_ENV || 'development';
-    const config = require('./config.json')[env];
+const testConnection = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('✅ Veritabanı bağlantısı başarılı!');
+    } catch (error) {
+        console.error('❌ Unable to connect to the database:', error.message);
+        process.exit(1);
+    }
+};
 
-    sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
-
-module.exports = sequelize;
+module.exports = { sequelize, testConnection };

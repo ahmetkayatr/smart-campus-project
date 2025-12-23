@@ -1,83 +1,55 @@
-const tokenService = require('../services/tokenService');
+const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
-// Authenticate JWT token
-const authenticate = async (req, res, next) => {
+// Authenticate middleware
+exports.authenticate = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
+        const token = req.headers.authorization?.replace('Bearer ', '');
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
-                error: {
-                    code: 'NO_TOKEN',
-                    message: 'Yetkilendirme token\'ý bulunamadý'
-                }
+                error: 'Token bulunamadý'
             });
         }
 
-        const token = authHeader.substring(7);
-        const decoded = tokenService.verifyAccessToken(token);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findByPk(decoded.userId);
 
-        const user = await User.findByPk(decoded.id);
-
-        if (!user || !user.is_active) {
+        if (!user) {
             return res.status(401).json({
                 success: false,
-                error: {
-                    code: 'INVALID_USER',
-                    message: 'Geçersiz kullanýcý veya hesap aktif deðil'
-                }
+                error: 'Kullanýcý bulunamadý'
             });
         }
 
-        req.user = {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            full_name: user.full_name
-        };
-
+        req.user = user;
         next();
     } catch (error) {
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
-            error: {
-                code: 'AUTHENTICATION_FAILED',
-                message: 'Geçersiz veya süresi dolmuþ token'
-            }
+            error: 'Geçersiz token'
         });
     }
 };
 
-// Authorize specific roles
-const authorize = (...allowedRoles) => {
+// Authorize middleware (role-based)
+exports.authorize = (allowedRoles = []) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({
                 success: false,
-                error: {
-                    code: 'NOT_AUTHENTICATED',
-                    message: 'Lütfen önce giriþ yapýn'
-                }
+                error: 'Kimlik doðrulama gerekli'
             });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        if (allowedRoles.length && !allowedRoles.includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
-                error: {
-                    code: 'FORBIDDEN',
-                    message: 'Bu iþlem için yetkiniz yok'
-                }
+                error: 'Bu iþlem için yetkiniz yok'
             });
         }
 
         next();
     };
-};
-
-module.exports = {
-    authenticate,
-    authorize
 };

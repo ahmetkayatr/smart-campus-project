@@ -5,7 +5,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-import Courses from './pages/Courses'; // YENÝ: Dersler sayfasýný dahil ettik
+import Courses from './pages/Courses';
+import Wallet from './pages/Wallet';        // Part 3
+import MealMenu from './pages/MealMenu';    // Part 3
+// Eðer Event ve Schedule sayfalarýný oluþturduysan bunlarý da import et:
+// import Events from './pages/Events'; 
+// import Schedule from './pages/Schedule'; 
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -54,7 +59,7 @@ function App() {
                         }
                     />
 
-                    {/* YENÝ EKLENEN PART 2 ROTASI: DERSLER ve YOKLAMA */}
+                    {/* PART 2 ROTASI: DERSLER ve YOKLAMA */}
                     <Route
                         path="/courses"
                         element={
@@ -63,6 +68,50 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+
+                    {/* YENÝ EKLENEN PART 3 ROTALARI */}
+
+                    {/* Cüzdan ve Ödeme Ýþlemleri */}
+                    <Route
+                        path="/wallet"
+                        element={
+                            <ProtectedRoute>
+                                <Wallet />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Yemekhane Menü ve Rezervasyon */}
+                    <Route
+                        path="/meals"
+                        element={
+                            <ProtectedRoute>
+                                <MealMenu />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Kampüs Etkinlikleri (Opsiyonel/Geliþtirilecek) */}
+                    {/* <Route
+                        path="/events"
+                        element={
+                            <ProtectedRoute>
+                                <Events />
+                            </ProtectedRoute>
+                        }
+                    /> 
+                    */}
+
+                    {/* Haftalýk Ders Programý (Scheduling) */}
+                    {/* <Route
+                        path="/schedule"
+                        element={
+                            <ProtectedRoute>
+                                <Schedule />
+                            </ProtectedRoute>
+                        }
+                    /> 
+                    */}
 
                     {/* Varsayýlan Yönlendirme */}
                     <Route path="/" element={<Navigate to="/dashboard" />} />
